@@ -10,6 +10,10 @@ import { store } from "./store/store";
 
 const routes = createBrowserRouter([
   {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
     element: <ProtectedRoute />,
     children: [
       {
@@ -21,10 +25,6 @@ const routes = createBrowserRouter([
         element: <TasksPage />,
       },
     ],
-  },
-  {
-    path: "/login",
-    element: <LoginPage />,
   },
 ]);
 
