@@ -5,6 +5,8 @@ import LoginPage from "./pages/LoginPage";
 import TasksPage from "./pages/TasksPage";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import { Provider } from "react-redux";
+import { store } from "./store/store";
 
 const routes = createBrowserRouter([
   {
@@ -28,9 +30,11 @@ const routes = createBrowserRouter([
 
 function App() {
   return (
-    <AuthProvider>
-      <RouterProvider router={routes} />
-    </AuthProvider>
+    <Provider store={store}>
+      <AuthProvider>
+        <RouterProvider router={routes} />
+      </AuthProvider>
+    </Provider>
   );
 }
 
