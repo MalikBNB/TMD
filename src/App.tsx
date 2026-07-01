@@ -7,6 +7,7 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
+import AppLayout from "./layouts/AppLayout";
 
 const routes = createBrowserRouter([
   {
@@ -17,12 +18,17 @@ const routes = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        path: "/",
-        element: <DashboardPage />,
-      },
-      {
-        path: "/tasks",
-        element: <TasksPage />,
+        element: <AppLayout />,
+        children: [
+          {
+            path: "/",
+            element: <DashboardPage />,
+          },
+          {
+            path: "/tasks",
+            element: <TasksPage />,
+          },
+        ],
       },
     ],
   },

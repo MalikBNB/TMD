@@ -18,7 +18,7 @@ export default function DashboardPage() {
   }, [dispatch]);
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4">
+    <div className="bg-gray-100 p-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <SummaryCard label="Total" status="total" value={totalTasks} />
         <SummaryCard label="To Do" status="todo" value={todoCount} />

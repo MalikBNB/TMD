@@ -20,7 +20,7 @@ export default function TaskCard({ task, onClick, onDelete }: TaskCardProps) {
     e.stopPropagation();
 
     const result = await Swal.fire({
-      icon: "error",
+      icon: "warning",
       title: "Delete task",
       text: "Are you sure you want to delete this task?",
       showCancelButton: true,
