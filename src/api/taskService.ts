@@ -1,9 +1,11 @@
 import type { Task } from "../types/Task";
-import { tasks } from "./mockData";
+import { tasks as initialTasks } from "./mockData";
 import type {
   CreateTaskRequest,
   UpdateTaskRequest,
 } from "./requests/TaskRequests";
+
+let taskDb: Task[] = [...initialTasks];
 
 class TaskService {
   private delay = (ms: number): Promise<void> =>
@@ -12,12 +14,12 @@ class TaskService {
   async getTasks(): Promise<Task[]> {
     await this.delay(800);
 
-    return tasks;
+    return [...taskDb];
   }
 
   async getTaskById(id: number): Promise<Task | undefined> {
     await this.delay(600);
-    return tasks.find((t) => t.id === id);
+    return taskDb.find((t) => t.id === id);
   }
 
   async createTask(task: CreateTaskRequest): Promise<Task> {
@@ -25,36 +27,36 @@ class TaskService {
 
     const newTask: Task = {
       ...task,
-      id: tasks.length > 0 ? tasks[tasks.length - 1].id + 1 : 1,
+      id: taskDb.length > 0 ? taskDb[taskDb.length - 1].id + 1 : 1,
       createdAt: new Date().toISOString(),
     };
 
-    tasks.push(newTask);
-    return newTask;
+    taskDb.push(newTask);
+    return { ...newTask };
   }
 
   async updateTask(id: number, updates: UpdateTaskRequest): Promise<Task> {
     await this.delay(600);
 
-    const index = tasks.findIndex((t) => t.id === id);
+    const index = taskDb.findIndex((t) => t.id === id);
     if (index === -1) {
       throw new Error(`Task with id:${id} not found.`);
     }
 
-    tasks[index] = { ...tasks[index], ...updates };
+    taskDb[index] = { ...taskDb[index], ...updates };
 
-    return tasks[index];
+    return { ...taskDb[index] };
   }
 
   async deleteTask(id: number): Promise<void> {
     await this.delay(600);
 
-    const index = tasks.findIndex((t) => t.id === id);
+    const index = taskDb.findIndex((t) => t.id === id);
     if (index === -1) {
       throw new Error(`Task with id:${id} not found.`);
     }
 
-    tasks.splice(index, 1);
+    taskDb.splice(index, 1);
   }
 }
 

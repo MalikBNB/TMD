@@ -49,7 +49,9 @@ export default function LoginPage() {
         </p>
 
         {error && (
-          <p className="text-red-600 bg-red-300 text-sm mb-8">{error}</p>
+          <p className="text-red-600 bg-red-50 text-sm p-1 rounded mb-2">
+            {error}
+          </p>
         )}
 
         <label
