@@ -10,21 +10,64 @@ import type {
   UpdateTaskRequest,
 } from "../api/requests/TaskRequests";
 import type { Task } from "../types/Task";
+import PageNavigator from "../components/PageNavigator";
 
 export default function TasksPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState({
+    todo: 1,
+    progress: 1,
+    done: 1,
+  });
+  const [priorityFilter, setPriorityFilter] = useState<Task["priority"][]>([
+    "low",
+    "medium",
+    "high",
+  ]);
+
+  const ITEMS_PER_PAGE = 3;
 
   const dispatch = useAppDispatch();
   const items = useAppSelector((state) => state.tasks.items);
 
-  useEffect(() => {
-    dispatch(fetchTasks());
-  }, [dispatch]);
+  const matchesFilters = (task: Task) =>
+    task.title.toLowerCase().includes(search.toLowerCase()) &&
+    priorityFilter.includes(task.priority);
 
-  const todoTasks = items.filter((t) => t.status === "todo");
-  const progressTasks = items.filter((t) => t.status === "progress");
-  const doneTasks = items.filter((t) => t.status === "done");
+  const todoTasks = items.filter(
+    (t) => t.status === "todo" && matchesFilters(t),
+  );
+  const progressTasks = items.filter(
+    (t) => t.status === "progress" && matchesFilters(t),
+  );
+  const doneTasks = items.filter(
+    (t) => t.status === "done" && matchesFilters(t),
+  );
+
+  function togglePriority(priority: Task["priority"]) {
+    setPriorityFilter((prev) =>
+      prev.includes(priority)
+        ? prev.filter((p) => p !== priority)
+        : [...prev, priority],
+    );
+    setCurrentPage({ todo: 1, progress: 1, done: 1 });
+  }
+
+  const paginate = (tasks: Task[], page: number) =>
+    tasks.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  const todoPage = paginate(todoTasks, currentPage.todo);
+  const progressPage = paginate(progressTasks, currentPage.progress);
+  const donePage = paginate(doneTasks, currentPage.done);
+
+  const totalPages = (tasks: Task[]) =>
+    Math.ceil(tasks.length / ITEMS_PER_PAGE);
+
+  function handlePageChange(column: keyof typeof currentPage, page: number) {
+    setCurrentPage((prev) => ({ ...prev, [column]: page }));
+  }
 
   function handleModalClose() {
     setIsModalOpen(false);
@@ -42,10 +85,39 @@ export default function TasksPage() {
     setSelectedTask(null);
   }
 
+  useEffect(() => {
+    dispatch(fetchTasks());
+  }, [dispatch]);
+
   return (
     <>
       <div className="p-2">
-        <div className="flex justify-end px-6 pt-6">
+        <div className="flex justify-end px-6 pt-6 gap-4">
+          <div className="flex items-center gap-3">
+            {(["low", "medium", "high"] as Task["priority"][]).map((p) => (
+              <label
+                key={p}
+                className="flex items-center gap-1 text-sm capitalize"
+              >
+                <input
+                  type="checkbox"
+                  checked={priorityFilter.includes(p)}
+                  onChange={() => togglePriority(p)}
+                />{" "}
+                {p}
+              </label>
+            ))}
+          </div>
+          <input
+            className="bg-white rounded px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="text"
+            placeholder="Search tasks..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage({ todo: 1, progress: 1, done: 1 });
+            }}
+          />
           <button
             className="bg-blue-600 text-white font-semibold px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
             onClick={() => setIsModalOpen(true)}
@@ -56,7 +128,7 @@ export default function TasksPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
           <div className="bg-gray-200 rounded-lg p-4">
             <h2 className="text-center text-gray-700 mb-4 font-bold">TODO</h2>
-            {todoTasks.map((task) => (
+            {todoPage?.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -64,13 +136,18 @@ export default function TasksPage() {
                 onDelete={() => dispatch(removeTask(task.id))}
               />
             ))}
+            <PageNavigator
+              currentPage={currentPage.todo}
+              totalPages={totalPages(todoTasks)}
+              onPageChange={(page) => handlePageChange("todo", page)}
+            />
           </div>
 
           <div className="bg-blue-100 rounded-lg p-4">
             <h2 className="text-center text-blue-700 mb-4 font-bold">
               IN PROGRESS
             </h2>
-            {progressTasks.map((task) => (
+            {progressPage?.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -78,11 +155,16 @@ export default function TasksPage() {
                 onDelete={() => dispatch(removeTask(task.id))}
               />
             ))}
+            <PageNavigator
+              currentPage={currentPage.progress}
+              totalPages={totalPages(progressTasks)}
+              onPageChange={(page) => handlePageChange("progress", page)}
+            />
           </div>
 
           <div className="bg-green-100 rounded-lg p-4">
             <h2 className="text-center text-green-700 mb-4 font-bold">DONE</h2>
-            {doneTasks.map((task) => (
+            {donePage?.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -90,6 +172,11 @@ export default function TasksPage() {
                 onDelete={() => dispatch(removeTask(task.id))}
               />
             ))}
+            <PageNavigator
+              currentPage={currentPage.done}
+              totalPages={totalPages(doneTasks)}
+              onPageChange={(page) => handlePageChange("done", page)}
+            />
           </div>
         </div>
       </div>
