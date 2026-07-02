@@ -11,6 +11,7 @@ import type {
 } from "../api/requests/TaskRequests";
 import type { Task } from "../types/Task";
 import PageNavigator from "../components/PageNavigator";
+import TaskCardSkeleton from "../components/TaskCardSkeleton";
 
 export default function TasksPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,6 +32,8 @@ export default function TasksPage() {
 
   const dispatch = useAppDispatch();
   const items = useAppSelector((state) => state.tasks.items);
+  const status = useAppSelector((state) => state.tasks.status);
+  const error = useAppSelector((state) => state.tasks.error);
 
   const matchesFilters = (task: Task) =>
     task.title.toLowerCase().includes(search.toLowerCase()) &&
@@ -125,17 +128,36 @@ export default function TasksPage() {
             + Create Task
           </button>
         </div>
+
+        {status === "failed" && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-3 mx-6 mb-2 mt-4">
+            {error ?? "Failed to load tasks. Please try again."}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
           <div className="bg-gray-200 rounded-lg p-4">
             <h2 className="text-center text-gray-700 mb-4 font-bold">TODO</h2>
-            {todoPage?.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onClick={() => setSelectedTask(task)}
-                onDelete={() => dispatch(removeTask(task.id))}
-              />
-            ))}
+            {status === "loading" ? (
+              <>
+                <TaskCardSkeleton />
+                <TaskCardSkeleton />
+                <TaskCardSkeleton />
+              </>
+            ) : todoTasks.length === 0 ? (
+              <p className="text-center text-gray-400 text-sm py-8">
+                No tasks here
+              </p>
+            ) : (
+              todoPage?.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onClick={() => setSelectedTask(task)}
+                  onDelete={() => dispatch(removeTask(task.id))}
+                />
+              ))
+            )}
             <PageNavigator
               currentPage={currentPage.todo}
               totalPages={totalPages(todoTasks)}
@@ -147,14 +169,26 @@ export default function TasksPage() {
             <h2 className="text-center text-blue-700 mb-4 font-bold">
               IN PROGRESS
             </h2>
-            {progressPage?.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onClick={() => setSelectedTask(task)}
-                onDelete={() => dispatch(removeTask(task.id))}
-              />
-            ))}
+            {status === "loading" ? (
+              <>
+                <TaskCardSkeleton />
+                <TaskCardSkeleton />
+                <TaskCardSkeleton />
+              </>
+            ) : progressTasks.length === 0 ? (
+              <p className="text-center text-gray-400 text-sm py-8">
+                No tasks here
+              </p>
+            ) : (
+              progressPage?.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onClick={() => setSelectedTask(task)}
+                  onDelete={() => dispatch(removeTask(task.id))}
+                />
+              ))
+            )}
             <PageNavigator
               currentPage={currentPage.progress}
               totalPages={totalPages(progressTasks)}
@@ -164,14 +198,26 @@ export default function TasksPage() {
 
           <div className="bg-green-100 rounded-lg p-4">
             <h2 className="text-center text-green-700 mb-4 font-bold">DONE</h2>
-            {donePage?.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onClick={() => setSelectedTask(task)}
-                onDelete={() => dispatch(removeTask(task.id))}
-              />
-            ))}
+            {status === "loading" ? (
+              <>
+                <TaskCardSkeleton />
+                <TaskCardSkeleton />
+                <TaskCardSkeleton />
+              </>
+            ) : doneTasks.length === 0 ? (
+              <p className="text-center text-gray-400 text-sm py-8">
+                No tasks here
+              </p>
+            ) : (
+              donePage?.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onClick={() => setSelectedTask(task)}
+                  onDelete={() => dispatch(removeTask(task.id))}
+                />
+              ))
+            )}
             <PageNavigator
               currentPage={currentPage.done}
               totalPages={totalPages(doneTasks)}
